@@ -431,7 +431,7 @@ pub mod source {
                 // Deduplicate newly received updates, sending new updates and timestamp counts.
                 let mut changes = changes_out.activate();
                 let mut counts = counts_out.activate();
-                while let Some((capability, updates)) = input.next() {
+                while let Some((capability, updates)) = input.next().with_cap() {
                     let mut changes_session = changes.session(&capability);
                     let mut counts_session = counts.session(&capability);
                     for (data, time, diff) in updates.iter() {
@@ -479,12 +479,12 @@ pub mod source {
                 let mut capability: Option<Capability<T>> = None;
 
                 // Drain all relevant update counts in to the mutable antichain tracking its frontier.
-                while let Some((cap, counts)) = counts.next() {
+                while let Some((cap, counts)) = counts.next().with_cap() {
                     updates_frontier.update_iter(counts.iter().cloned());
                     capability = Some(cap.retain());
                 }
                 // Drain all progress statements into the queue out of which we will work.
-                while let Some((cap, progress)) = input.next() {
+                while let Some((cap, progress)) = input.next().with_cap() {
                     progress_queue.extend(progress.iter().map(|x| (x.1).clone()));
                     capability = Some(cap.retain());
                 }
@@ -545,7 +545,7 @@ pub mod source {
             move |_frontiers| {
                 let mut antichain = shared_frontier2.borrow_mut();
                 let mut must_activate = false;
-                while let Some((_cap, frontier_changes)) = input.next() {
+                while let Some((_cap, frontier_changes)) = input.next().with_cap() {
                     for (_self, input_changes) in frontier_changes.iter() {
                         // Apply the updates, and observe if the lower bound has changed.
                         if antichain.update_iter(input_changes.unstable_internal_updates().iter().cloned()).next().is_some() {
