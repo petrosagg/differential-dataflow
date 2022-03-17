@@ -156,12 +156,10 @@ where
     let mut stash = HashMap::new();
     let mut buffer = Vec::new();
 
-    let exchange = Exchange::new(move |update: &((Tr::Key, V, G::Timestamp),G::Timestamp,Tr::R)| (update.0).0.hashed().into());
-
     // Stash for (time, diff) accumulation.
     let mut output_buffer = Vec::new();
 
-    stream.inner.binary_frontier(&arrangement_stream, exchange, Pipeline, "HalfJoin", move |_,info| {
+    stream.inner.binary_frontier(&arrangement_stream, Pipeline, Pipeline, "HalfJoin", move |_,info| {
 
         // Acquire an activator to reschedule the operator when it has unfinished work.
         use timely::scheduling::Activator;
